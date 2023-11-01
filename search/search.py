@@ -73,6 +73,9 @@ def tinyMazeSearch(problem):
     return  [s, s, w, s, w, w, s, w]
 
 def depthFirstSearch(problem):
+    print "Start:", problem.getStartState()
+    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
+    print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     Search the deepest nodes in the search tree first.
 
@@ -87,7 +90,6 @@ def depthFirstSearch(problem):
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
@@ -109,7 +111,43 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    import util
+
+    """
+    |---------------------------|
+    | Node  |direction| cost    |
+    | coords| to Node |(prioity)|
+    |---------------------------|
+    """
+    pq = util.PriorityQueue() #using this to keep track of lowest c + h node
+    visited = [] #keeps track of nodes already visited 
+    solution = []
+    node_path_map = {}
+
+    # if dot is there at the start only
+    if problem.isGoalState(problem.getStartState()):
+        return []
+    
+    pq.push([problem.getStartState(),[],0],0)
+
+    while not pq.isEmpty(): #until there is no more nodes to be searched
+        curr = pq.pop()
+        solution = curr[1]
+        d = curr[2]
+        curr = curr[0]
+        if problem.isGoalState(curr): #exit condition of solution being found
+            print "Total cost", d
+            print "Solution found", solution
+            return solution
+        if curr not in visited:
+            visited.append(curr) 
+            adjNodes = problem.getSuccessors(curr) # fn returns [(s,a,s),(),(),()] where (s,a,s) is one adjacent node
+            for successor,action,stepCost in adjNodes:
+                directions = solution + [action]
+                c = problem.getCostOfActions(directions) + heuristic(successor,problem) #cost = g + h
+                if successor not in visited:
+                    pq.push([successor,directions,c],c)
+
 
 
 # Abbreviations
