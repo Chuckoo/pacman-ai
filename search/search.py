@@ -183,7 +183,7 @@ def uniformCostSearch(problem):
             if nei[0] not in visited:
                 if nei[0] not in prev_node.keys(): #if visiting for the first time, simply add this to prev_node.
                     prev_node[nei[0]] = [cur_node, nei[1]]
-                else: # else, update the prev_node of this neighbor if the current cost to reach this is than the existing ones.
+                else: # else, update the prev_node of this neighbor if the current cost to reach this is less than the existing ones.
                     if costs[nei[0]] > cur_cost + nei[2]:
                         prev_node[nei[0]] = [cur_node, nei[1]]
                 #update queue and costs for this neighbor.
