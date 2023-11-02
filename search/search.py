@@ -73,9 +73,6 @@ def tinyMazeSearch(problem):
     return  [s, s, w, s, w, w, s, w]
 
 def depthFirstSearch(problem):
-    print "Start:", problem.getStartState()
-    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
-    print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     Search the deepest nodes in the search tree first.
 
@@ -91,14 +88,117 @@ def depthFirstSearch(problem):
     """
     "*** YOUR CODE HERE ***"
 
+    prev_node = {} #this dictionary will store the previous node in the path for every node. for example if state2 is reached from state1 by going south, then prev_node[state2] = [state1, South]
+    res = [] #final list of directions to reach the goal.
+    visited = set() # keep track of visited nodes.
+    stack = util.Stack() # using stack as fringe for DFS.
+
+    start_state = problem.getStartState()
+    stack.push(start_state)
+    goal_state = None
+
+    # pop from the stack until it is empty.
+    while not stack.isEmpty():
+        cur = stack.pop()
+        visited.add(cur)
+        if problem.isGoalState(cur):
+            goal_state = cur  
+            break #stop searching if goal is found.
+        for nei in problem.getSuccessors(cur):
+            # explore neighbors of cur if they are not yet visited.
+            if nei[0] not in visited:
+                prev_node[nei[0]] = [cur,nei[1]] # store that this neighbor is reached from cur.
+                stack.push(nei[0])
+
+    temp = goal_state
+    # backtrack from goal state to get the list of nodes visited to reach the goal.
+    while temp != start_state:
+        res.insert(0,prev_node[temp][1])
+        temp = prev_node[temp][0]
+    
+    return res
+
+    util.raiseNotDefined()
+
 def breadthFirstSearch(problem):
-    """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
+
+    prev_node = {} #this dictionary will store the previous node in the path for every node. 
+    res = [] #final list of directions to reach the goal.
+    visited = set() # keep track of visited nodes.
+    queue = util.Queue() # using queue as fringe for BFS.
+
+    start_state = problem.getStartState()
+    queue.push(start_state)
+    visited.add(start_state)
+    goal_state = None
+
+    # pop from the queue until it is empty.
+    while not queue.isEmpty():
+        cur = queue.pop()
+        if problem.isGoalState(cur):
+            goal_state = cur
+            break # stop searching if goal is found.
+        for nei in problem.getSuccessors(cur):
+            # explore neighbors of cur if they are not yet visited.
+            if nei[0] not in visited:
+                visited.add(nei[0])
+                prev_node[nei[0]] = [cur, nei[1]] # store that this neighbor is reached from cur.
+                queue.push(nei[0])
+    
+    temp = goal_state
+    # backtrack from goal state to get the list of nodes visited to reach the goal.
+    while temp != start_state:
+        res.insert(0,prev_node[temp][1])
+        temp = prev_node[temp][0]
+
+    return res
+
     util.raiseNotDefined()
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
+
+    prev_node = {} # this dictionary will store the previous node in the path for every node. 
+    res = [] # final list of directions to reach the goal.
+    visited = set() #keep track of visited nodes.
+    queue = util.PriorityQueue() # using priority queue as fringe for UCS.
+
+    start_state = problem.getStartState()
+    queue.push(start_state,0) # push start_state, cost
+    visited.add(start_state)
+    goal_state = None
+    costs = {start_state : 0} # dictionary to store the least cost to reach every node.
+
+    # pop from the priority queue until it is empty.
+    while not queue.isEmpty():
+        cur_node = queue.pop()
+        cur_cost = costs[cur_node]
+        visited.add(cur_node)
+        if problem.isGoalState(cur_node):
+            goal_state = cur_node
+            break # stop searching if goal is found.
+        for nei in problem.getSuccessors(cur_node):
+            # explore neighbors of cur if they are not yet visited.
+            if nei[0] not in visited:
+                if nei[0] not in prev_node.keys(): #if visiting for the first time, simply add this to prev_node.
+                    prev_node[nei[0]] = [cur_node, nei[1]]
+                else: # else, update the prev_node of this neighbor if the current cost to reach this is than the existing ones.
+                    if costs[nei[0]] > cur_cost + nei[2]:
+                        prev_node[nei[0]] = [cur_node, nei[1]]
+                #update queue and costs for this neighbor.
+                queue.update(nei[0], cur_cost + nei[2])
+                costs.update({nei[0] : cur_cost + nei[2]})
+                
+                
+    temp = goal_state
+    # backtrack from goal state to get the list of nodes visited to reach the goal.
+    while temp != start_state:
+        res.insert(0, prev_node[temp][1])
+        temp = prev_node[temp][0]
+
+    return res
+
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
@@ -149,9 +249,9 @@ def aStarSearch(problem, heuristic=nullHeuristic):
                     pq.push([successor,directions,c],c)
 
 
-
 # Abbreviations
 bfs = breadthFirstSearch
 dfs = depthFirstSearch
 astar = aStarSearch
 ucs = uniformCostSearch
+
