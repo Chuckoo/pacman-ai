@@ -40,6 +40,7 @@ from game import Actions
 import util
 import time
 import search
+import copy
 
 class GoWestAgent(Agent):
     "An agent that goes West until it can't."
@@ -295,6 +296,9 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
+        #This time for the pacman to cover all the four corners we will keep track of all the corners and keep updating this data
+        #as it reaches any one of the corners. To maintain a record we will pass the corners of the maze.
+        return (self.startingPosition,(list(self.corners)))
         util.raiseNotDefined()
 
     def isGoalState(self, state):
@@ -302,6 +306,23 @@ class CornersProblem(search.SearchProblem):
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
+        '''
+        if state in self.corners and len(self.corners) ==1:
+            return True
+        elif state in self.corners:
+            corner_list = list(self.corners)
+            corner_list.remove(state)
+            self.corners = tuple(corner_list)
+            return False
+        else:
+            return False
+        '''
+        #In this problem the goal state is reached when the pacman reaches all the four corners of the maze.
+        #As we keep track of the remaining corners in the current state we can check the values left in the list.
+        if not bool(state[1]):
+            return True
+        else:
+            return False
         util.raiseNotDefined()
 
     def getSuccessors(self, state):
@@ -325,6 +346,22 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            #For every currentState we try to find the successors and check if the successor does not hit the wall.
+            initial_x = state[0][0]
+            initial_y = state[0][1]
+            delta_x = (Actions.directionToVector(action))[0]
+            delta_y = (Actions.directionToVector(action))[1]
+            #Calculate the new successor value from current state
+            next_x = int(initial_x + delta_x)
+            next_y = int(initial_y + delta_y)
+            #We check if the new calculated co-ordinate is not a wall and also see if it is a corner.
+            #If the new successor is a corner we then also remove the corner co-ordinate from the list that contains the co-ordinates of corners yet to be travelled.
+            if not self.walls[next_x][next_y]:
+                needToTraverse = copy.copy(state[1])
+                nextState = (next_x, next_y)
+                if nextState in needToTraverse:
+                    needToTraverse.remove(nextState)
+                successors.append(((nextState,needToTraverse), action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -356,11 +393,33 @@ def cornersHeuristic(state, problem):
     shortest path from the state to a goal of the problem; i.e.  it should be
     admissible (as well as consistent).
     """
-    corners = problem.corners # These are the corner coordinates
+    corners = problem.corners# These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    #Our goal is to implement a heuristic function to find the most most optimal hueristic value that is admissible and consistent
+    #To acheive this we use manhattanHeuristic, but instead of just giving a value between two points, this time we'll have to 
+    #return value that will give the heuristic value to cover all the corners from the current position.
+    minsolution = 0
+    currentPosition = state[0]
+    #Collect the corners yet to be traversed
+    needToTraverse = copy.copy(state[1])
+    #Calculate from currentState to every corner in the collected list
+    while bool(needToTraverse):
+        cornerDistanceKeyValue = []
+        for i in needToTraverse:
+            tempList = []
+            tempList.append(i)
+            tempList.append(abs(currentPosition[0] - i[0]) + abs(currentPosition[1] - i[1]))
+            cornerDistanceKeyValue.append(tempList)
+        #After finding manhattanHeuristic from currentPosition to every corner in list consider the corner with the least value as the one to be traversed next
+        #Now remove this corner from the list and keeping this as CurrentPosition find the next corner to be reached. Repeat until all the corners are traversed.
+        cornerDistanceKeyValue = sorted(cornerDistanceKeyValue, key = lambda x : x[1])
+        minsolution += cornerDistanceKeyValue[0][1]
+        currentPosition = cornerDistanceKeyValue[0][0]
+        needToTraverse.remove(currentPosition)
+
+    return minsolution # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
