@@ -87,118 +87,111 @@ def depthFirstSearch(problem):
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
-
-    prev_node = {} #this dictionary will store the previous node in the path for every node. for example if state2 is reached from state1 by going south, then prev_node[state2] = [state1, South]
-    res = [] #final list of directions to reach the goal.
-    visited = set() # keep track of visited nodes.
-    stack = util.Stack() # using stack as fringe for DFS.
-
-    start_state = problem.getStartState()
-    stack.push(start_state)
-    goal_state = None
-
-    # pop from the stack until it is empty.
-    while not stack.isEmpty():
-        cur = stack.pop()
-        visited.add(cur)
-        if problem.isGoalState(cur):
-            goal_state = cur  
-            break #stop searching if goal is found.
-        for nei in problem.getSuccessors(cur):
-            # explore neighbors of cur if they are not yet visited.
-            if nei[0] not in visited:
-                prev_node[nei[0]] = [cur,nei[1]] # store that this neighbor is reached from cur.
-                stack.push(nei[0])
-
-    temp = goal_state
-    # backtrack from goal state to get the list of nodes visited to reach the goal.
-    while temp != start_state:
-        res.insert(0,prev_node[temp][1])
-        temp = prev_node[temp][0]
-    
-    return res
-
+    from game import Directions
+    South = Directions.SOUTH
+    West = Directions.WEST
+    East = Directions.EAST
+    North = Directions.NORTH
+    #The problem statement is to reach the goal using Depth First Search
+    visited = [] #We maintain a data structure to hold all the visited nodes
+    dfs_stack = [] #This stack will keep growing as we go to a particular node with its successors
+    begin = problem.getStartState()
+    dfs_stack.append([begin,[]])
+    #Until the stack is empty we keep visiting every node or stop if we reach the goal state
+    while bool(dfs_stack):
+        currPointList = dfs_stack.pop() #We traverse to the node that was added most recently
+        currPoint = currPointList[0]
+        currPath = currPointList[1]
+        #If the current state is not visited we check if it is the goal state and if not add its successors into the stack
+        if currPoint not in visited:
+            visited.append(currPoint)
+            #If the goal is reached we return the path traversed until now to reach the goal
+            if problem.isGoalState(currPoint):
+                return currPath
+            else:
+                for i in problem.getSuccessors(currPoint):
+                    nextPoint = i[0]
+                    nextDirection = i[1]
+                    #append the stack with next possible node and the path to reach the node
+                    dfs_stack.append([nextPoint,currPath + [nextDirection]])
     util.raiseNotDefined()
 
 def breadthFirstSearch(problem):
-
-    prev_node = {} #this dictionary will store the previous node in the path for every node. 
-    res = [] #final list of directions to reach the goal.
-    visited = set() # keep track of visited nodes.
-    queue = util.Queue() # using queue as fringe for BFS.
-
-    start_state = problem.getStartState()
-    queue.push(start_state)
-    visited.add(start_state)
-    goal_state = None
-
-    # pop from the queue until it is empty.
-    while not queue.isEmpty():
-        cur = queue.pop()
-        if problem.isGoalState(cur):
-            goal_state = cur
-            break # stop searching if goal is found.
-        for nei in problem.getSuccessors(cur):
-            # explore neighbors of cur if they are not yet visited.
-            if nei[0] not in visited:
-                visited.add(nei[0])
-                prev_node[nei[0]] = [cur, nei[1]] # store that this neighbor is reached from cur.
-                queue.push(nei[0])
-    
-    temp = goal_state
-    # backtrack from goal state to get the list of nodes visited to reach the goal.
-    while temp != start_state:
-        res.insert(0,prev_node[temp][1])
-        temp = prev_node[temp][0]
-
-    return res
-
+    """Search the shallowest nodes in the search tree first."""
+    "*** YOUR CODE HERE ***"
+    from game import Directions
+    South = Directions.SOUTH
+    West = Directions.WEST
+    East = Directions.EAST
+    North = Directions.NORTH
+    #The problem statement is to reach the goal using Breadth First Search
+    visited = [] #We maintain a data structure to hold all the visited nodes
+    bfs_queue = [] #This stack will keep growing as we go to a particular node with its successors
+    begin = problem.getStartState()
+    bfs_queue.append([begin,[]])
+    #Until the stack is empty we keep visiting every node or stop if we reach the goal state
+    while bool(bfs_queue):
+        currPointList = bfs_queue.pop(0) #We traverse to the node in the order it was added into the stack
+        currPoint = currPointList[0]
+        currPath = currPointList[1]
+        #If the current state is not visited we check if it is the goal state and if not add its successors into the stack
+        if currPoint not in visited:
+            visited.append(currPoint)
+            if problem.isGoalState(currPoint):
+                #If the goal is reached we return the path traversed until now to reach the goal
+                return currPath
+            else:
+                for i in problem.getSuccessors(currPoint):
+                    nextPoint = i[0]
+                    nextDirection = i[1]
+                    if not nextPoint in visited:
+                        #append the stack with next possible node and the path to reach the node
+                        bfs_queue.append([nextPoint,currPath + [nextDirection]])
     util.raiseNotDefined()
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-
-    prev_node = {} # this dictionary will store the previous node in the path for every node. 
-    res = [] # final list of directions to reach the goal.
-    visited = set() #keep track of visited nodes.
-    queue = util.PriorityQueue() # using priority queue as fringe for UCS.
-
-    start_state = problem.getStartState()
-    queue.push(start_state,0) # push start_state, cost
-    visited.add(start_state)
-    goal_state = None
-    costs = {start_state : 0} # dictionary to store the least cost to reach every node.
-
-    # pop from the priority queue until it is empty.
-    while not queue.isEmpty():
-        cur_node = queue.pop()
-        cur_cost = costs[cur_node]
-        visited.add(cur_node)
-        if problem.isGoalState(cur_node):
-            goal_state = cur_node
-            break # stop searching if goal is found.
-        for nei in problem.getSuccessors(cur_node):
-            # explore neighbors of cur if they are not yet visited.
-            if nei[0] not in visited:
-                if nei[0] not in prev_node.keys(): #if visiting for the first time, simply add this to prev_node.
-                    prev_node[nei[0]] = [cur_node, nei[1]]
-                else: # else, update the prev_node of this neighbor if the current cost to reach this is less than the existing ones.
-                    if costs[nei[0]] > cur_cost + nei[2]:
-                        prev_node[nei[0]] = [cur_node, nei[1]]
-                #update queue and costs for this neighbor.
-                queue.update(nei[0], cur_cost + nei[2])
-                costs.update({nei[0] : cur_cost + nei[2]})
-                
-                
-    temp = goal_state
-    # backtrack from goal state to get the list of nodes visited to reach the goal.
-    while temp != start_state:
-        res.insert(0, prev_node[temp][1])
-        temp = prev_node[temp][0]
-
-    return res
-
+    from game import Directions
+    South = Directions.SOUTH
+    West = Directions.WEST
+    East = Directions.EAST
+    North = Directions.NORTH
+    #The problem statement is to reach the goal using Uniform Cost Search
+    visited = [] #We maintain a data structure to hold all the visited nodes
+    ucs_queue = [] #This stack will keep growing as we go to a particular node with its successors
+    begin = problem.getStartState()
+    ucs_queue.append([begin,[],0])
+    #We keep traversing the stack until we reach the goal or the stack gets empty
+    while len(ucs_queue):
+        #The stack is now sorted to find the node that needs to be traversed next and this is done by picking the node with least cost
+        ucs_queue = sorted(ucs_queue, key = lambda x : x[2])#We sort the data structure on distance and take the first node
+        currPointList = ucs_queue.pop(0)
+        currPoint = currPointList[0]
+        currPath = currPointList[1]
+        currCost = currPointList[2]
+        #Visit all the nodes that are not visited in the stack
+        if currPoint not in visited:
+            visited.append(currPoint)
+            #If the goal is reached return the path to reach this state
+            if problem.isGoalState(currPoint):
+                return currPath
+            else:
+                for i in problem.getSuccessors(currPoint):
+                    nextPoint = i[0]
+                    nextDirection = i[1]
+                    nextCost = float(i[2])
+                    exist_flag = False
+                    for j in ucs_queue:
+                        if nextPoint == j[0]:
+                            if j[2] > currCost+nextCost:
+                                j[2] = currCost+nextCost
+                                j[1] = currPath + [nextDirection]
+                            exist_flag = True
+                    if not exist_flag:
+                        #If the current node is not the goal state then calculate the cost and path to reach the successors from current state and add them to the stack
+                        if nextPoint not in visited:
+                            ucs_queue.append([nextPoint,currPath + [nextDirection],(currCost+nextCost)])
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
@@ -211,42 +204,48 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    import util
-
-    """
-    |---------------------------|
-    | Node  |direction| cost    |
-    | coords| to Node |(prioity)|
-    |---------------------------|
-    """
-    pq = util.PriorityQueue() #using this to keep track of lowest c + h node
-    visited = [] #keeps track of nodes already visited 
-    solution = []
-    node_path_map = {}
-
-    # if dot is there at the start only
-    if problem.isGoalState(problem.getStartState()):
-        return []
-    
-    pq.push([problem.getStartState(),[],0],0)
-
-    while not pq.isEmpty(): #until there is no more nodes to be searched
-        curr = pq.pop()
-        solution = curr[1]
-        d = curr[2]
-        curr = curr[0]
-        if problem.isGoalState(curr): #exit condition of solution being found
-            print "Total cost", d
-            print "Solution found", solution
-            return solution
-        if curr not in visited:
-            visited.append(curr) 
-            adjNodes = problem.getSuccessors(curr) # fn returns [(s,a,s),(),(),()] where (s,a,s) is one adjacent node
-            for successor,action,stepCost in adjNodes:
-                directions = solution + [action]
-                c = problem.getCostOfActions(directions) + heuristic(successor,problem) #cost = g + h
-                if successor not in visited:
-                    pq.push([successor,directions,c],c)
+    from game import Directions
+    South = Directions.SOUTH
+    West = Directions.WEST
+    East = Directions.EAST
+    North = Directions.NORTH
+    #The problem statement is to reach the goal using A Star Search
+    visited = [] #We maintain a data structure to hold all the visited nodes
+    ucs_queue = [] #This stack will keep growing as we go to a particular node with its successors
+    begin = problem.getStartState()
+    ucs_queue.append([begin,[],0])
+    #We keep traversing the stack until we reach the goal or the stack gets empty
+    while len(ucs_queue):
+        #The stack is now sorted to find the node that needs to be traversed next and this is done by picking the node with least cost
+        ucs_queue = sorted(ucs_queue, key = lambda x : (x[2]))#We sort the data structure on distance and take the first node
+        currPointList = ucs_queue.pop(0)
+        currPoint = currPointList[0]
+        currPath = currPointList[1]
+        currCost = currPointList[2]
+        #Visit all the nodes that are not visited in the stack
+        if currPoint not in visited:
+            visited.append(currPoint)
+            #If the goal is reached return the path to reach this state
+            if problem.isGoalState(currPoint):
+                return currPath
+            else:
+                for i in problem.getSuccessors(currPoint):
+                    nextPoint = i[0]
+                    nextDirection = i[1]
+                    nextCost = float(i[2])
+                    exist_flag = False
+                    completeCost = problem.getCostOfActions(currPath+[nextDirection])
+                    for j in ucs_queue:
+                        if nextPoint == j[0]:
+                            if j[2] > completeCost+heuristic(j[0],problem):
+                                j[2] = (completeCost + heuristic(j[0],problem))
+                                j[1] = currPath + [nextDirection]
+                            exist_flag = True
+                    if not exist_flag:
+                        #If the current node is not the goal state then calculate the cost using a heuristic and path to reach the successors from current state and add them to the stack
+                        if nextPoint not in visited:
+                            ucs_queue.append([nextPoint,currPath + [nextDirection],(completeCost+heuristic(nextPoint,problem))])
+    util.raiseNotDefined()
 
 
 # Abbreviations
@@ -254,4 +253,3 @@ bfs = breadthFirstSearch
 dfs = depthFirstSearch
 astar = aStarSearch
 ucs = uniformCostSearch
-
