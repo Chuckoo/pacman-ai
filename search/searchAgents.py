@@ -257,10 +257,10 @@ def manhattanHeuristic(position, problem, info={}):
     xy2 = problem.goal
     return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
 
-def euclideanHeuristic(position, problem, info={}):
+def euclideanHeuristic(position, problem, info):
     "The Euclidean distance heuristic for a PositionSearchProblem"
     xy1 = position
-    xy2 = problem.goal
+    xy2 = info
     return ( (xy1[0] - xy2[0]) ** 2 + (xy1[1] - xy2[1]) ** 2 ) ** 0.5
 
 #####################################################
@@ -512,6 +512,30 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
+
+    aList = []
+    myList = list(foodGrid)
+
+    
+    for x in range(len(myList)):
+        for y in range(len(myList[x])):
+            if myList[x][y]:
+                aList.append(mazeDistance(position,(x,y),problem.startingGameState))
+
+    # for x in range(len(myList)):
+    #     for y in range(len(myList[x])):
+    #         if myList[x][y]:
+    #             aList.append(euclideanHeuristic(position,problem,(x,y)))
+
+    # for x in range(len(myList)):
+    #     for y in range(len(myList[x])):
+    #         if myList[x][y]:
+    #             aList.append(util.manhattanDistance(position,(x,y)))
+
+    if len(aList) == 0:
+        return 0
+    
+    return max(aList)
     "*** YOUR CODE HERE ***"
     return 0
 
@@ -543,8 +567,30 @@ class ClosestDotSearchAgent(SearchAgent):
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
 
+        visited = [] #We maintain a data structure to hold all the visited nodes
+        bfs_queue = [] #This stack will keep growing as we go to a particular node with its successors
+        begin = startPosition
+        bfs_queue.append([begin,[]])
+        #Until the stack is empty we keep visiting every node or stop if we reach the goal state
+        while bool(bfs_queue):
+            currPointList = bfs_queue.pop(0) #We traverse to the node in the order it was added into the stack
+            currPoint = currPointList[0]
+            currPath = currPointList[1]
+            #If the current state is not visited we check if it is the goal state and if not add its successors into the stack
+            if currPoint not in visited:
+                visited.append(currPoint)
+                if currPoint in food.asList():
+                    #If the goal is reached we return the path traversed until now to reach the goal
+                    return currPath
+                else:
+                    for i in problem.getSuccessors(currPoint):
+                        nextPoint = i[0]
+                        nextDirection = i[1]
+                        if not nextPoint in visited:
+                            #append the stack with next possible node and the path to reach the node
+                            bfs_queue.append([nextPoint,currPath + [nextDirection]])
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        #util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -560,7 +606,6 @@ class AnyFoodSearchProblem(PositionSearchProblem):
     You can use this search problem to help you fill in the findPathToClosestDot
     method.
     """
-
     def __init__(self, gameState):
         "Stores information from the gameState.  You don't need to change this."
         # Store the food for later reference
