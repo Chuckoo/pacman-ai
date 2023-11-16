@@ -514,13 +514,9 @@ def foodHeuristic(state, problem):
     position, foodGrid = state
 
     aList = []
-    myList = list(foodGrid)
+    myList = list(foodGrid) #converting the grid into a list of lists
 
-    
-    for x in range(len(myList)):
-        for y in range(len(myList[x])):
-            if myList[x][y]:
-                aList.append(mazeDistance(position,(x,y),problem.startingGameState))
+    # experimenting with various heuristics
 
     # for x in range(len(myList)):
     #     for y in range(len(myList[x])):
@@ -531,8 +527,14 @@ def foodHeuristic(state, problem):
     #     for y in range(len(myList[x])):
     #         if myList[x][y]:
     #             aList.append(util.manhattanDistance(position,(x,y)))
+    
+    # this heuristic seems to give us the best result
+    for x in range(len(myList)):
+        for y in range(len(myList[x])):
+            if myList[x][y]:
+                aList.append(mazeDistance(position,(x,y),problem.startingGameState))
 
-    if len(aList) == 0:
+    if len(aList) == 0: #exit condition for when we have fiished eating all the dots/food.
         return 0
     
     return max(aList)
@@ -567,6 +569,10 @@ class ClosestDotSearchAgent(SearchAgent):
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
 
+        "*** YOUR CODE HERE ***"
+
+        #here the previous bfs algorithm can be used to find the closest dot
+
         visited = [] #We maintain a data structure to hold all the visited nodes
         bfs_queue = [] #This stack will keep growing as we go to a particular node with its successors
         begin = startPosition
@@ -589,7 +595,7 @@ class ClosestDotSearchAgent(SearchAgent):
                         if not nextPoint in visited:
                             #append the stack with next possible node and the path to reach the node
                             bfs_queue.append([nextPoint,currPath + [nextDirection]])
-        "*** YOUR CODE HERE ***"
+        
         #util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
@@ -625,6 +631,7 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
+        #this is not really needed as the goal state can be found out in the code itself using the food variable
         util.raiseNotDefined()
 
 def mazeDistance(point1, point2, gameState):
